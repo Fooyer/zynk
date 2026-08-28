@@ -1,0 +1,267 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Base ──────────────────────────────── */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  /* Gradiente radial com um sopro de vermelho no topo (glow "ligado") + textura
+     de scanline bem sutil — a identidade futurista mora no fundo, não só nos
+     detalhes, mas fica discreta o bastante pra não atrapalhar leitura. */
+  background:
+    repeating-linear-gradient(180deg, rgb(255 255 255 / 0.012) 0px, rgb(255 255 255 / 0.012) 1px, transparent 1px, transparent 3px),
+    radial-gradient(ellipse 120% 60% at 50% -10%, rgb(var(--color-accent-500) / 0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 120% 100% at 50% -10%, rgb(var(--color-surface-800)) 0%, rgb(var(--color-surface-950)) 55%, rgb(var(--color-surface-950)) 100%);
+}
+
+::selection {
+  background: rgb(var(--color-accent-500) / 0.35);
+  color: rgb(var(--color-surface-50));
+}
+
+:focus-visible {
+  outline: 2px solid rgb(var(--color-accent-500) / 0.65);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ─── Bordas arredondadas da janela ──────────
+   No Linux o Electron roda com transparent:true (sem cantos nativos), então
+   quem desenha o arredondado de verdade é este wrapper — precisa envolver
+   todo conteúdo opaco da janela (a #root nunca deve ficar sem ele). Em
+   Windows/macOS a janela já é opaca com roundedCorners nativo (ver main.ts),
+   então esse raio extra é zerado (classe .native-frame, setada em
+   index.html) pra não duplicar o arredondado. ──── */
+
+.window-shell {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+html.native-frame .window-shell {
+  border-radius: 0;
+}
+
+/* ─── Scrollbar customizada (estilo Discord) ── */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--color-surface-700));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--color-accent-600));
+}
+
+/* ─── Drag region for Electron title bar ──── */
+
+.drag-region {
+  -webkit-app-region: drag;
+}
+
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* ─── Transitions ────────────────────────── */
+
+@layer utilities {
+  .transition-colors-fast {
+    transition: color 0.1s ease, background-color 0.1s ease;
+  }
+}
+
+/* ─── Feedback tátil universal de clique ───────────────────────────
+   Todo <button> do app "responde" ao clique com uma leve contração — sem
+   precisar que cada botão declare a própria animação. !important porque
+   button:active precisa vencer o transition-property que transition-colors/
+   transition-all do Tailwind já define no elemento (senão o scale voltaria
+   ao normal sem suavizar, já que "transform" ficaria de fora da lista de
+   propriedades animadas do componente). */
+button:not(:disabled) {
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform !important;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1) !important;
+  transition-duration: 150ms !important;
+}
+button:not(:disabled):active {
+  transform: scale(0.97);
+}
+
+/* Quem pede menos movimento no SO some com toda entrada/transição do app —
+   inclusive as animate-fade-in/scale-in/menu-in/toast-in acima. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─── Range sliders — trilha fina + thumb pequeno, visual leve em vez do
+   controle nativo grosso/3D do navegador. A cor de preenchimento vem via
+   background inline (gradiente calculado no componente); aqui só o reset
+   de forma. ──────────────────────────────── */
+
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 9999px;
+  background: rgb(var(--color-surface-700));
+  outline: none;
+}
+
+input[type='range']::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 9999px;
+  background: transparent;
+}
+
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  margin-top: -4px;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+input[type='range']:hover::-webkit-slider-thumb {
+  transform: scale(1.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35), 0 0 0 4px rgb(var(--color-accent-500) / 0.25);
+}
+
+input[type='range']:active::-webkit-slider-thumb {
+  transform: scale(1.05);
+}
+
+input[type='range']::-moz-range-track {
+  height: 4px;
+  border-radius: 9999px;
+  background: transparent;
+}
+
+input[type='range']::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+input[type='range']:hover::-moz-range-thumb {
+  transform: scale(1.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35), 0 0 0 4px rgb(var(--color-accent-500) / 0.25);
+}
+
+input[type='range']:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ─── Recipes reutilizáveis de superfície ───
+   Em vez de repetir bg+border+shadow em cada modal/card, os pontos de
+   elevação do app inteiro passam por aqui — trocar o visual "flutuante"
+   do app é mudar isto, não cada componente. ──────────────────────── */
+
+@layer components {
+  /* Cartão/painel apoiado no fundo (sidebars, seções) — borda quase
+     invisível (branco bem translúcido) em vez de linha sólida cinza. */
+  .zk-surface {
+    @apply bg-surface-800 border border-white/[0.06];
+  }
+
+  /* Elemento flutuante acima do conteúdo (dropdown, menu de contexto, popover) */
+  .zk-elevated {
+    @apply bg-surface-800 border border-white/[0.08] shadow-elevated;
+  }
+
+  /* Modal / diálogo — o nível mais "no ar" da hierarquia */
+  .zk-modal {
+    @apply bg-surface-800 border border-white/[0.08] shadow-modal;
+  }
+
+  /* Campo de formulário padrão do app */
+  .zk-input {
+    @apply bg-surface-900/70 border border-white/[0.08] text-surface-100 placeholder-surface-500
+      transition-colors focus:outline-none focus:border-accent-500/60 focus:ring-1 focus:ring-accent-500/40;
+  }
+
+  /* Rótulo de seção estilo HUD — maiúsculas espaçadas, discreto. Usado em
+     cabeçalhos de lista ("MENSAGENS DIRETAS", "GRUPOS", etc.). */
+  .zk-label {
+    @apply text-[10px] font-semibold uppercase tracking-[0.14em] text-surface-500;
+  }
+
+  /* Botão de ação primária — preenchido em vermelho com glow no hover e texto
+     em versalete espaçado ("ENTRAR", "CRIAR", "SALVAR"...), a assinatura mais
+     visível do tema futurista nos CTAs. Só padding/raio ficam a cargo de quem usa. */
+  .zk-btn-primary {
+    @apply bg-accent-600 hover:bg-accent-500 hover:shadow-glow-accent
+      disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed
+      text-on-accent font-semibold uppercase tracking-wide transition-all;
+  }
+
+  /* Texto sobre fundo sólido de destaque (bg-accent-500/600) — branco ou
+     preto conforme --color-accent-foreground (ver App.tsx/color.ts), em vez
+     de text-white fixo, pra continuar legível com cor personalizada/gradiente
+     clara. */
+  .text-on-accent {
+    color: rgb(var(--color-accent-foreground));
+  }
+}
+
+/* ─── Contagem regressiva de eventos ───────────────────────────────
+   Cada número "pipoca" (escala + fade) — remontado a cada segundo via
+   key={secondsLeft} no componente, pra reiniciar a animação em todo tick. */
+@keyframes zynk-countdown-pop {
+  0% { transform: scale(1.7); opacity: 0; }
+  55% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ─── Cantos-guia estilo HUD ───────────────────────────────────────
+   Quatro traços em L nos cantos, desenhados só com background-image (sem
+   markup extra) — o toque "mira/reticle" de painel futurista. Combina com
+   raio de borda generoso: os traços ficam soltos perto da quina arredondada,
+   igual em dashboards sci-fi. Usar com moderação (poucos pontos de destaque). */
+.zk-corners {
+  position: relative;
+  background-image:
+    linear-gradient(to right, rgb(var(--color-accent-500) / 0.55) 2px, transparent 2px),
+    linear-gradient(to bottom, rgb(var(--color-accent-500) / 0.55) 2px, transparent 2px),
+    linear-gradient(to left, rgb(var(--color-accent-500) / 0.55) 2px, transparent 2px),
+    linear-gradient(to bottom, rgb(var(--color-accent-500) / 0.55) 2px, transparent 2px),
+    linear-gradient(to right, rgb(var(--color-accent-500) / 0.55) 2px, transparent 2px),
+    linear-gradient(to top, rgb(var(--color-accent-500) / 0.55) 2px, transparent 2px),
+    linear-gradient(to left, rgb(var(--color-accent-500) / 0.55) 2px, transparent 2px),
+    linear-gradient(to top, rgb(var(--color-accent-500) / 0.55) 2px, transparent 2px);
+  background-repeat: no-repeat;
+  background-size: 16px 2px, 2px 16px, 16px 2px, 2px 16px, 16px 2px, 2px 16px, 16px 2px, 2px 16px;
+  background-position: top -1px left -1px, top -1px left -1px, top -1px right -1px, top -1px right -1px,
+    bottom -1px right -1px, bottom -1px right -1px, bottom -1px left -1px, bottom -1px left -1px;
+}

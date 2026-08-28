@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="preconnect" href="https://zynk.fooyer.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <title>Zynk</title>
+    <script src="./bootstrap.js"></script>
+    <style>
+      html, body {
+        background: transparent;
+      }
+      html.native-frame, html.native-frame body {
+        background: #0a0a0b;
+      }
+      #splash {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #0a0a0b;
+        border-radius: 10px;
+        z-index: 9999;
+        transition: opacity 0.3s ease;
+      }
+      html.native-frame #splash {
+        border-radius: 0;
+      }
+      #splash.fade-out { opacity: 0; pointer-events: none; }
+      #splash .logo {
+        font-family: 'IBM Plex Sans', sans-serif;
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #e2e4ed;
+        letter-spacing: -0.02em;
+        margin-bottom: 1.5rem;
+      }
+      #splash .loader {
+        position: relative;
+        width: 44px;
+        height: 44px;
+      }
+      #splash .loader::before {
+        content: '';
+        position: absolute;
+        inset: -14px;
+        border-radius: 50%;
+        border: 1px solid rgb(var(--splash-accent-rgb, 124, 107, 245) / 0.15);
+      }
+      #splash .loader-ring {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: conic-gradient(
+          from 0deg,
+          transparent 0deg,
+          rgb(var(--splash-accent-rgb, 124, 107, 245)) 45deg,
+          rgb(var(--splash-accent-2-rgb, 124, 107, 245)) 90deg,
+          transparent 150deg,
+          transparent 360deg
+        );
+        -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+        mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+        filter: drop-shadow(0 0 6px rgb(var(--splash-accent-rgb, 124, 107, 245) / 0.55));
+        animation: splash-spin 1s linear infinite;
+      }
+      #splash .loader-core {
+        position: absolute;
+        inset: 0;
+        margin: auto;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: rgb(var(--splash-accent-rgb, 124, 107, 245));
+        box-shadow: 0 0 10px 2px rgb(var(--splash-accent-rgb, 124, 107, 245) / 0.8);
+        animation: splash-pulse 1.4s ease-in-out infinite;
+      }
+      @keyframes splash-spin { to { transform: rotate(360deg); } }
+      @keyframes splash-pulse {
+        0%, 100% { transform: scale(0.8); opacity: 0.6; }
+        50% { transform: scale(1.2); opacity: 1; }
+      }
+      html[data-theme='light'] #splash {
+        background: #f7f7f7;
+      }
+      html[data-theme='light'] #splash .logo {
+        color: #111111;
+      }
+    </style>
+  </head>
+  <body class="text-surface-100">
+    <div id="splash">
+      <div class="logo">Zynk</div>
+      <div class="loader">
+        <span class="loader-ring"></span>
+        <span class="loader-core"></span>
+      </div>
+    </div>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
