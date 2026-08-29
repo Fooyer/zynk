@@ -62,11 +62,18 @@ pub fn start_screen_capture(
     // Só uma captura ativa por vez — uma nova chamada cancela a anterior.
     stop_running(&state);
 
-    let monitors = Monitor::all().map_err(|e| e.to_string())?;
-    let monitor = monitors
-        .into_iter()
-        .find(|m| m.id().map(|id| id == screen_id).unwrap_or(false))
-        .ok_or_else(|| "Tela não encontrada".to_string())?;
+    // Confere que a tela existe já aqui (erro rápido pro frontend), mas
+    // NÃO move o `Monitor` pra dentro da thread — no Windows ele guarda um
+    // HMONITOR (ponteiro win32, `*mut c_void`), que não é `Send`. Em vez
+    // disso só o `screen_id` (um u32, Send de sobra) atravessa a fronteira
+    // da thread, e o Monitor é resolvido de novo lá dentro.
+    if !Monitor::all()
+        .map_err(|e| e.to_string())?
+        .iter()
+        .any(|m| m.id().map(|id| id == screen_id).unwrap_or(false))
+    {
+        return Err("Tela não encontrada".to_string());
+    }
 
     let running = Arc::new(AtomicBool::new(true));
     *state.0.lock().unwrap() = Some(running.clone());
@@ -76,6 +83,17 @@ pub fn start_screen_capture(
     eprintln!("[screen_capture] iniciando captura da tela id={screen_id} a {fps}fps");
 
     std::thread::spawn(move || {
+        let monitor = match Monitor::all()
+            .ok()
+            .and_then(|ms| ms.into_iter().find(|m| m.id().map(|id| id == screen_id).unwrap_or(false)))
+        {
+            Some(m) => m,
+            None => {
+                eprintln!("[screen_capture] tela id={screen_id} sumiu antes da thread iniciar");
+                return;
+            }
+        };
+
         let mut frame_count: u64 = 0;
         while running.load(Ordering::Relaxed) {
             let frame_start = Instant::now();
