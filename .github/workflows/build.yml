@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: ubuntu-22.04
+          - platform: ubuntu-24.04
           - platform: windows-latest
 
     runs-on: ${{ matrix.platform }}
@@ -20,11 +20,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # AppImage/deb ganham mais compatibilidade com distros mais novas
-      # compilando numa base mais antiga (glibc mais velha = roda em mais
-      # lugares) — por isso ubuntu-22.04 em vez de ubuntu-latest.
+      # ubuntu-24.04 (não 22.04): o crate xcap (captura nativa de tela)
+      # usa a lib libspa/PipeWire do sistema via bindgen — a versão do
+      # PipeWire no 22.04 é velha demais e não tem as funções que o xcap
+      # espera (erro de compilação). 24.04 tem PipeWire novo o bastante e
+      # também bate com a base real dos usuários atuais (Ubuntu/Zorin 24.04).
       - name: Instala dependências do sistema (Linux)
-        if: matrix.platform == 'ubuntu-22.04'
+        if: matrix.platform == 'ubuntu-24.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
