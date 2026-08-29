@@ -1,9 +1,16 @@
+import { captureScreenNative } from './nativeScreenCapture';
+import { isLinuxTauri } from './platform';
+
 /**
- * Captura a tela usando getDisplayMedia.
+ * Captura a tela usando getDisplayMedia (ou a captura nativa via Rust no
+ * Linux — ver nativeScreenCapture.ts).
  * Se sourceId é fornecido (Electron), avisa o main process antes para que o
  * setDisplayMediaRequestHandler use o source escolhido pelo usuário.
  */
 export async function captureScreen(sourceId?: string): Promise<MediaStream> {
+  if (isLinuxTauri()) {
+    return captureScreenNative();
+  }
   try {
     // O await garante que o main process já guardou o source ANTES
     // de getDisplayMedia disparar o handler.

@@ -1,7 +1,7 @@
 {
   "name": "zynk-tauri",
   "private": true,
-  "version": "0.1.0-mvp",
+  "version": "1.0.0",
   "description": "Zynk — MVP em Tauri + React (validação de basics fora do Electron)",
   "type": "module",
   "scripts": {
